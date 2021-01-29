@@ -1,0 +1,7 @@
+*.pyc
+__pycache__
+db.sqlite3
+venv/
+.env
+portfolio_manager.sublime-project
+portfolio_manager.sublime-workspace
