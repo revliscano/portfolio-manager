@@ -9,9 +9,6 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-from sys import path as sys_path
-from os.path import join as os_join
-
 from pathlib import Path
 
 from .dotenv_serializer import Environment
@@ -19,7 +16,6 @@ from .dotenv_serializer import Environment
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-sys_path.insert(0, os_join(BASE_DIR, 'apps'))
 
 environment = Environment()
 
@@ -50,8 +46,8 @@ INSTALLED_APPS = [
     # Foreign apps
     'rest_framework',
     # My apps
-    'portfolio',
-    'users'
+    'apps.portfolio',
+    'apps.users'
 ]
 
 MIDDLEWARE = [
