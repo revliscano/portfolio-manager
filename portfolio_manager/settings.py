@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+from os.path import join as os_join
 from pathlib import Path
 
 from .dotenv_serializer import Environment
@@ -153,6 +154,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os_join(BASE_DIR, 'static')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os_join(BASE_DIR, 'media')
 
 # Django REST Framework
 REST_FRAMEWORK = {
