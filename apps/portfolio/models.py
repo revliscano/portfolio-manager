@@ -5,6 +5,9 @@ class Technology(models.Model):
     name = models.CharField(max_length=50)
     logo = models.ImageField(upload_to='technologies_logos/')
 
+    def __str__(self):
+        return self.name
+
 
 class Project(models.Model):
     name = models.CharField(max_length=50)
@@ -14,3 +17,6 @@ class Project(models.Model):
         to=Technology,
         related_name='projects'
     )
+
+    def __str__(self):
+        return self.name
