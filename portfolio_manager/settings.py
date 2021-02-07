@@ -158,6 +158,7 @@ STATIC_ROOT = os_join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os_join(BASE_DIR, 'media')
 
+
 # Django REST Framework
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
