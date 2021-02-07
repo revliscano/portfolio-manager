@@ -20,3 +20,17 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Screenshot(models.Model):
+
+    def generate_upload_directory(instance, filename):
+        return f'screenshots/{instance.project}/{filename}'
+
+    project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to=generate_upload_directory)
+    is_cover = models.BooleanField(default=False)
+    caption = models.CharField(max_length=140)
+
+    def __str__(self):
+        return f'{self.project} screenshot'
