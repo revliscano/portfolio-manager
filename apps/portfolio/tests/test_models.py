@@ -5,15 +5,8 @@ from shutil import rmtree
 from django.test import TestCase
 from django.conf import settings
 
-from mixer.backend.django import mixer
-
 from apps.portfolio.models import Project, Technology, Screenshot
-
-
-def create_object(model, data=None):
-    if data is None:
-        data = {}
-    return mixer.blend(model, **data)
+from apps.portfolio.tests.utils import create_object
 
 
 class TestProjectModel(TestCase):
@@ -37,6 +30,11 @@ class TestTechnologyModel(TestCase):
             data={'name': 'Django'}
         )
         self.assertEqual(str(given_technology), 'Django')
+
+    def test_technology_plural_str_representation(self):
+        expected_plural_name = 'Technologies'
+        model_plural_name = Technology._meta.verbose_name_plural
+        self.assertEqual(model_plural_name, expected_plural_name)
 
     def tearDown(self):
         self.tear_down_assistant.remove_images_created_for_tests()

@@ -5,6 +5,9 @@ class Technology(models.Model):
     name = models.CharField(max_length=50)
     logo = models.ImageField(upload_to='technologies_logos/')
 
+    class Meta:
+        verbose_name_plural = 'Technologies'
+
     def __str__(self):
         return self.name
 
