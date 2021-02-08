@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     # Foreign apps
     'rest_framework',
     # My apps
@@ -157,6 +158,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os_join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os_join(BASE_DIR, 'media')
+
+SITE_ID = 1
 
 
 # Django REST Framework

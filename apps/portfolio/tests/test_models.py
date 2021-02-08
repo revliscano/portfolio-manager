@@ -1,12 +1,9 @@
-import re
-import os
-from shutil import rmtree
+from os.path import dirname
 
 from django.test import TestCase
-from django.conf import settings
 
 from apps.portfolio.models import Project, Technology, Screenshot
-from apps.portfolio.tests.utils import create_object
+from apps.portfolio.tests.utils import create_object, ImagesEraser
 
 
 class TestProjectModel(TestCase):
@@ -19,11 +16,6 @@ class TestProjectModel(TestCase):
 
 
 class TestTechnologyModel(TestCase):
-    def setUp(self):
-        self.tear_down_assistant = ImagesEraser(
-            directory_name='technologies_logos'
-        )
-
     def test_technology_str_representation(self):
         given_technology = create_object(
             Technology,
@@ -37,7 +29,10 @@ class TestTechnologyModel(TestCase):
         self.assertEqual(model_plural_name, expected_plural_name)
 
     def tearDown(self):
-        self.tear_down_assistant.remove_images_created_for_tests()
+        tear_down_assistant = ImagesEraser(
+            directory_name='technologies_logos'
+        )
+        tear_down_assistant.remove_images_created_for_tests()
 
 
 class TestScreenshotModel(TestCase):
@@ -45,9 +40,6 @@ class TestScreenshotModel(TestCase):
         self.whatever_project = create_object(
             Project,
             data={'name': 'Whatever'}
-        )
-        self.tear_down_assistant = ImagesEraser(
-            directory_name='screenshots/Whatever'
         )
 
     def test_screenshot_str_representation(self):
@@ -62,7 +54,7 @@ class TestScreenshotModel(TestCase):
             Screenshot,
             data={'project': self.whatever_project}
         )
-        uploaded_image_directory_path = os.path.dirname(screenshot.image.url)
+        uploaded_image_directory_path = dirname(screenshot.image.url)
         self.assertEqual(
             self.get_last_two_components_of(uploaded_image_directory_path),
             'screenshots/Whatever'
@@ -73,33 +65,7 @@ class TestScreenshotModel(TestCase):
         return '/'.join(components)
 
     def tearDown(self):
-        self.tear_down_assistant.remove_whole_directory()
-
-
-class ImagesEraser:
-    def __init__(self, directory_name):
-        self.directory = self.get_image_directory(directory_name)
-
-    def get_image_directory(self, directory_name):
-        return os.path.join(
-            settings.MEDIA_ROOT,
-            directory_name
+        tear_down_assistant = ImagesEraser(
+            directory_name='screenshots/Whatever'
         )
-
-    def remove_images_created_for_tests(self):
-        image_directory_files = self.get_files_in_image_directory()
-        for image in image_directory_files:
-            self.erase(image)
-
-    def get_files_in_image_directory(self):
-        return os.listdir(
-            self.directory
-        )
-
-    def remove_whole_directory(self):
-        rmtree(self.directory)
-
-    def erase(self, image):
-        regex_pattern_for_test_images = r"image(?:_\w+)?\.gif"
-        if re.match(regex_pattern_for_test_images, image):
-            os.remove(os.path.join(self.directory, image))
+        tear_down_assistant.remove_whole_directory()
