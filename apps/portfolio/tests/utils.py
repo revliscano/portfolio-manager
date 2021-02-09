@@ -13,6 +13,11 @@ def create_object(model, *, data=None, commit=True):
     return mixer.blend(model, **data)
 
 
+def create_three_objects_of(model, common_data=None):
+    mixer = Mixer()
+    return mixer.cycle(count=3).blend(model, **common_data)
+
+
 class ImagesEraser:
     def __init__(self, directory_name):
         self.directory = self.get_image_directory(directory_name)

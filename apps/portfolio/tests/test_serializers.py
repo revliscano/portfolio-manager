@@ -6,10 +6,14 @@ from apps.portfolio.serializers import (
     TechnologySerializer,
     ScreenshotSerializer
 )
-from apps.portfolio.tests.utils import create_object, ImagesEraser
+from apps.portfolio.tests.utils import (
+    create_object,
+    ImagesEraser,
+    create_three_objects_of
+)
 
 
-class TestSerializers(SimpleTestCase):
+class TestSerializersHaveDesiredFields(SimpleTestCase):
     serializers = {
         Project: ProjectSerializer,
         Technology: TechnologySerializer,
@@ -17,7 +21,9 @@ class TestSerializers(SimpleTestCase):
     }
 
     def test_project_serializer_contains_all_fields(self):
-        expected_fields = ['id', 'name', 'description', 'year', 'technologies']
+        expected_fields = [
+            'id', 'name', 'description', 'year', 'technologies', 'screenshots'
+        ]
         serializer_fields = self.get_serializer_fields_for(Project)
         self.assertCountEqual(serializer_fields, expected_fields)
 
@@ -40,11 +46,39 @@ class TestSerializers(SimpleTestCase):
         return serializer.data.keys()
 
 
-class TestScreenshotSerializerImages(TestCase):
-    request_factory = RequestFactory()
+class TestProjectsScreenshotSerializarion(TestCase):
+    def test_multiple_screenshots_get_serialized_inside_project(self):
+        self.create_project_and_screenshots()
+        project_data, screenshots_data = self.get_serializers_data()
+        self.assertEqual(
+            project_data['screenshots'],
+            screenshots_data
+        )
 
+    def create_project_and_screenshots(self):
+        self.project = create_object(Project)
+        self.screenshots = create_three_objects_of(
+            Screenshot,
+            common_data={'project': self.project}
+        )
+
+    def get_serializers_data(self):
+        project_serializer = ProjectSerializer(self.project)
+        screenshots_data = [
+            ScreenshotSerializer(screenshot).data
+            for screenshot in self.screenshots
+        ]
+        return project_serializer.data, screenshots_data
+
+    def tearDown(self):
+        tear_down_assistant = ImagesEraser(
+            directory_name=f'screenshots/{self.project}'
+        )
+        tear_down_assistant.remove_whole_directory()
+
+
+class TestSerializersImageFields(TestCase):
     def setUp(self):
-        self.request = self.request_factory.get('/')
         self.whatever_project = create_object(
             Project,
             data={'name': 'Whatever'}
@@ -55,13 +89,20 @@ class TestScreenshotSerializerImages(TestCase):
             Screenshot,
             data={'project': self.whatever_project}
         )
-        screenshot_serializer = ScreenshotSerializer(
-            screenshot,
-            context={'request': self.request}
+        screenshot_serializer = self.get_serializer_when_request_is_passed(
+            screenshot
         )
         image_field = screenshot_serializer.data['image']
 
         self.assertTrue('http://testserver' in image_field)
+
+    def get_serializer_when_request_is_passed(self, screenshot):
+        request_factory = RequestFactory()
+        request = request_factory.get('/')
+        return ScreenshotSerializer(
+            screenshot,
+            context={'request': request}
+        )
 
     def tearDown(self):
         tear_down_assistant = ImagesEraser(

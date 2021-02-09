@@ -30,7 +30,11 @@ class Screenshot(models.Model):
     def generate_upload_directory(instance, filename):
         return f'screenshots/{instance.project}/{filename}'
 
-    project = models.ForeignKey(to=Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        to=Project,
+        on_delete=models.CASCADE,
+        related_name='screenshots'
+    )
     image = models.ImageField(upload_to=generate_upload_directory)
     is_cover = models.BooleanField(default=False)
     caption = models.CharField(max_length=140)
