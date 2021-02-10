@@ -14,6 +14,8 @@ def create_object(model, *, data=None, commit=True):
 
 
 def create_three_objects_of(model, common_data=None):
+    if common_data is None:
+        common_data = {}
     mixer = Mixer()
     return mixer.cycle(count=3).blend(model, **common_data)
 

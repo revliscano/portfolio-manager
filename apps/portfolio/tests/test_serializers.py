@@ -1,4 +1,4 @@
-from django.test import SimpleTestCase, TestCase, RequestFactory
+from django.test import TestCase, RequestFactory
 
 from apps.portfolio.models import Project, Technology, Screenshot
 from apps.portfolio.serializers import (
@@ -13,7 +13,7 @@ from apps.portfolio.tests.utils import (
 )
 
 
-class TestSerializersHaveDesiredFields(SimpleTestCase):
+class TestSerializersHaveDesiredFields(TestCase):
     serializers = {
         Project: ProjectSerializer,
         Technology: TechnologySerializer,
@@ -37,13 +37,13 @@ class TestSerializersHaveDesiredFields(SimpleTestCase):
         serializer_fields = self.get_serializer_fields_for(Screenshot)
         self.assertCountEqual(serializer_fields, expected_fields)
 
-    def get_serializer(self, model):
-        object_ = create_object(model, commit=False)
-        return self.serializers[model](object_)
-
     def get_serializer_fields_for(self, model):
         serializer = self.get_serializer(model)
         return serializer.data.keys()
+
+    def get_serializer(self, model):
+        object_ = create_object(model)
+        return self.serializers[model](object_)
 
 
 class TestProjectsScreenshotSerializarion(TestCase):
@@ -75,6 +75,37 @@ class TestProjectsScreenshotSerializarion(TestCase):
             directory_name=f'screenshots/{self.project}'
         )
         tear_down_assistant.remove_whole_directory()
+
+
+class TestProjectsTechnologiesSerializarion(TestCase):
+    def test_multiple_technologies_get_serialized_inside_project(self):
+        self.create_project_and_technologies()
+        project_data, technologies_data = self.get_serializers_data()
+        self.assertEqual(
+            project_data['technologies'],
+            technologies_data
+        )
+
+    def create_project_and_technologies(self):
+        self.technologies = create_three_objects_of(Technology)
+        self.project = create_object(
+            Project,
+            data={'technologies': self.technologies}
+        )
+
+    def get_serializers_data(self):
+        project_serializer = ProjectSerializer(self.project)
+        technologies_data = [
+            TechnologySerializer(technology).data
+            for technology in self.technologies
+        ]
+        return project_serializer.data, technologies_data
+
+    def tearDown(self):
+        tear_down_assistant = ImagesEraser(
+            directory_name='technologies_logos'
+        )
+        tear_down_assistant.remove_images_created_for_tests()
 
 
 class TestSerializersImageFields(TestCase):
