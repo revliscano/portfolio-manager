@@ -33,16 +33,18 @@ class TestScreenshotsInline(SimpleTestCase):
 
     def test_screenshots_inline_is_included_in_project_admin(self):
         expected_formset = inlineformset_factory(
-            Project,
-            Screenshot,
+            parent_model=Project,
+            model=Screenshot,
             fields='__all__'
         )
-
-        inline = self.get_project_admin_inline()
-        formset = inline.get_formset(self.request)
+        admin_inline = self.get_project_admin_inline()
+        formset = admin_inline.get_formset(self.request)
 
         self.assertEqual(type(formset), type(expected_formset))
 
     def get_project_admin_inline(self):
         inline_class = ProjectAdmin.inlines[self.FIRST_INLINE]
-        return inline_class(Project, actual_admin.site)
+        return inline_class(
+            parent_model=Project,
+            admin_site=actual_admin.site
+        )
