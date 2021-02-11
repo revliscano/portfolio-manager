@@ -4,6 +4,16 @@ from apps.portfolio.models import (
 )
 
 
-admin.site.register(Project)
+class ScreenshotInline(admin.StackedInline):
+    model = Screenshot
+
+
+class ProjectAdmin(admin.ModelAdmin):
+    inlines = [
+        ScreenshotInline
+    ]
+
+
+admin.site.register(Project, ProjectAdmin)
 admin.site.register(Technology)
 admin.site.register(Screenshot)

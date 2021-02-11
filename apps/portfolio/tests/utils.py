@@ -41,7 +41,7 @@ class ImagesEraser:
         )
 
     def remove_whole_directory(self):
-        rmtree(self.directory)
+        rmtree(self.directory, ignore_errors=True)
 
     def erase(self, image):
         regex_pattern_for_test_images = r"image(?:_\w+)?\.gif"

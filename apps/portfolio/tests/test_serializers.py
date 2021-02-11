@@ -13,37 +13,51 @@ from apps.portfolio.tests.utils import (
 )
 
 
-class TestSerializersHaveDesiredFields(TestCase):
-    serializers = {
-        Project: ProjectSerializer,
-        Technology: TechnologySerializer,
-        Screenshot: ScreenshotSerializer
-    }
+class TestProjectSerializerFields(TestCase):
+    def setUp(self):
+        project = create_object(Project)
+        self.serializer = ProjectSerializer(project)
 
     def test_project_serializer_contains_all_fields(self):
         expected_fields = [
             'id', 'name', 'description', 'year', 'technologies', 'screenshots'
         ]
-        serializer_fields = self.get_serializer_fields_for(Project)
+        serializer_fields = self.serializer.data.keys()
         self.assertCountEqual(serializer_fields, expected_fields)
 
-    def test_technology_serializer_contains_all_fields(self):
+
+class TestTechnologySerializerFields(TestCase):
+    def setUp(self):
+        technology = create_object(Technology)
+        self.serializer = TechnologySerializer(technology)
+
+    def test_project_serializer_contains_all_fields(self):
         expected_fields = ['id', 'name', 'logo']
-        serializer_fields = self.get_serializer_fields_for(Technology)
+        serializer_fields = self.serializer.data.keys()
         self.assertCountEqual(serializer_fields, expected_fields)
 
-    def test_screenshot_serializer_contains_all_fields(self):
+    def tearDown(self):
+        tear_down_assistant = ImagesEraser(
+            directory_name='technologies_logos'
+        )
+        tear_down_assistant.remove_images_created_for_tests()
+
+
+class TestScreenshotSerializerFields(TestCase):
+    def setUp(self):
+        self.screenshot = create_object(Screenshot)
+        self.serializer = ScreenshotSerializer(self.screenshot)
+
+    def test_project_serializer_contains_all_fields(self):
         expected_fields = ['id', 'project', 'image', 'is_cover', 'caption']
-        serializer_fields = self.get_serializer_fields_for(Screenshot)
+        serializer_fields = self.serializer.data.keys()
         self.assertCountEqual(serializer_fields, expected_fields)
 
-    def get_serializer_fields_for(self, model):
-        serializer = self.get_serializer(model)
-        return serializer.data.keys()
-
-    def get_serializer(self, model):
-        object_ = create_object(model)
-        return self.serializers[model](object_)
+    def tearDown(self):
+        tear_down_assistant = ImagesEraser(
+            directory_name=f'screenshots/{self.screenshot.project}'
+        )
+        tear_down_assistant.remove_whole_directory()
 
 
 class TestProjectsScreenshotSerializarion(TestCase):
