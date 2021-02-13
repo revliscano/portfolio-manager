@@ -3,6 +3,7 @@ from django.test import TestCase, RequestFactory
 from apps.portfolio.models import Project, Technology, Screenshot
 from apps.portfolio.serializers import (
     ProjectSerializer,
+    ProjectPreviewSerializer,
     TechnologySerializer,
     ScreenshotSerializer
 )
@@ -18,7 +19,7 @@ class TestProjectSerializerFields(TestCase):
         project = create_object(Project)
         self.serializer = ProjectSerializer(project)
 
-    def test_project_serializer_contains_all_fields(self):
+    def test_contains_all_fields(self):
         expected_fields = [
             'id', 'name', 'role', 'description', 'year',
             'technologies', 'screenshots'
@@ -27,12 +28,31 @@ class TestProjectSerializerFields(TestCase):
         self.assertCountEqual(serializer_fields, expected_fields)
 
 
+class TestProjectPreviewSerializerFields(TestCase):
+    def setUp(self):
+        self.project = create_object(Project)
+        self.serializer = ProjectPreviewSerializer(self.project)
+
+    def test_contains_all_fields(self):
+        expected_fields = ['id', 'name', 'role', 'cover_image']
+        serializer_fields = self.serializer.data.keys()
+        self.assertCountEqual(serializer_fields, expected_fields)
+
+    def test_cover_image_field(self):
+        screenshot = create_object(
+            Screenshot,
+            data={'is_cover': True, 'project': self.project}
+        )
+        cover_image = self.serializer.data['cover_image']
+        self.assertEqual(screenshot.image.url, cover_image)
+
+
 class TestTechnologySerializerFields(TestCase):
     def setUp(self):
         technology = create_object(Technology)
         self.serializer = TechnologySerializer(technology)
 
-    def test_project_serializer_contains_all_fields(self):
+    def test_contains_all_fields(self):
         expected_fields = ['id', 'name', 'logo']
         serializer_fields = self.serializer.data.keys()
         self.assertCountEqual(serializer_fields, expected_fields)
@@ -49,7 +69,7 @@ class TestScreenshotSerializerFields(TestCase):
         self.screenshot = create_object(Screenshot)
         self.serializer = ScreenshotSerializer(self.screenshot)
 
-    def test_project_serializer_contains_all_fields(self):
+    def test_contains_all_fields(self):
         expected_fields = ['id', 'project', 'image', 'is_cover', 'caption']
         serializer_fields = self.serializer.data.keys()
         self.assertCountEqual(serializer_fields, expected_fields)
