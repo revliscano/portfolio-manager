@@ -37,10 +37,15 @@ class TestScreenshotsInline(SimpleTestCase):
             model=Screenshot,
             fields='__all__'
         )
-        admin_inline = self.get_project_admin_inline()
-        formset = admin_inline.get_formset(self.request)
+        project_admin_inline = self.get_project_admin_inline()
+        returned_formset = project_admin_inline.get_formset(self.request)
 
-        self.assertEqual(type(formset), type(expected_formset))
+        self.assertEqual(type(returned_formset), type(expected_formset))
+
+    def test_screenshots_inline_formset_has_no_extra_forms(self):
+        expected_extra_forms = 0
+        project_admin_inline = self.get_project_admin_inline()
+        self.assertEqual(project_admin_inline.extra, expected_extra_forms)
 
     def get_project_admin_inline(self):
         inline_class = ProjectAdmin.inlines[self.FIRST_INLINE]

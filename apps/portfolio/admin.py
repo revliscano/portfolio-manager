@@ -6,6 +6,7 @@ from apps.portfolio.models import (
 
 class ScreenshotInline(admin.StackedInline):
     model = Screenshot
+    extra = 0
 
 
 class ProjectAdmin(admin.ModelAdmin):

@@ -14,6 +14,7 @@ class Technology(models.Model):
 
 class Project(models.Model):
     name = models.CharField(max_length=50)
+    role = models.CharField(max_length=100)
     description = models.TextField(max_length=4000)
     year = models.IntegerField()
     technologies = models.ManyToManyField(

@@ -20,7 +20,8 @@ class TestProjectSerializerFields(TestCase):
 
     def test_project_serializer_contains_all_fields(self):
         expected_fields = [
-            'id', 'name', 'description', 'year', 'technologies', 'screenshots'
+            'id', 'name', 'role', 'description', 'year',
+            'technologies', 'screenshots'
         ]
         serializer_fields = self.serializer.data.keys()
         self.assertCountEqual(serializer_fields, expected_fields)
