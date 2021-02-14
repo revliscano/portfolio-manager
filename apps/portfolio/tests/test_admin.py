@@ -3,7 +3,7 @@ from django.contrib import admin as actual_admin
 from django.forms.models import inlineformset_factory
 
 from apps.portfolio.models import Project, Technology, Screenshot
-from apps.portfolio.admin import ProjectAdmin
+from apps.portfolio.admin import ProjectAdmin, ScreenshotInline
 
 
 class TestModelAdminRegistration(SimpleTestCase):
@@ -18,7 +18,6 @@ class TestModelAdminRegistration(SimpleTestCase):
 
 
 class TestScreenshotsInline(SimpleTestCase):
-    FIRST_INLINE = 0
 
     class MockRequest:
         pass
@@ -48,7 +47,11 @@ class TestScreenshotsInline(SimpleTestCase):
         self.assertEqual(project_admin_inline.extra, expected_extra_forms)
 
     def get_project_admin_inline(self):
-        inline_class = ProjectAdmin.inlines[self.FIRST_INLINE]
+        inline_class = next(
+            inline_class
+            for inline_class in ProjectAdmin.inlines
+            if inline_class == ScreenshotInline
+        )
         return inline_class(
             parent_model=Project,
             admin_site=actual_admin.site
