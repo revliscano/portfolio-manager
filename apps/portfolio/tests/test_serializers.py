@@ -29,9 +29,15 @@ class TestProjectSerializerFields(TestCase):
 
 
 class TestProjectPreviewSerializerFields(TestCase):
+    request_factory = RequestFactory()
+
     def setUp(self):
+        request = self.request_factory.get('/')
         self.project = create_object(Project)
-        self.serializer = ProjectPreviewSerializer(self.project)
+        self.serializer = ProjectPreviewSerializer(
+            self.project,
+            context={'request': request}
+        )
 
     def test_contains_all_fields(self):
         expected_fields = ['id', 'name', 'role', 'cover_image']
@@ -44,7 +50,13 @@ class TestProjectPreviewSerializerFields(TestCase):
             data={'is_cover': True, 'project': self.project}
         )
         cover_image = self.serializer.data['cover_image']
-        self.assertEqual(screenshot.image.url, cover_image)
+        self.assertTrue(screenshot.image.url in cover_image)
+
+    def tearDown(self):
+        tear_down_assistant = ImagesEraser(
+            directory_name=f'screenshots/{self.project}'
+        )
+        tear_down_assistant.remove_whole_directory()
 
 
 class TestTechnologySerializerFields(TestCase):
@@ -141,37 +153,3 @@ class TestProjectsTechnologiesSerializarion(TestCase):
             directory_name='technologies_logos'
         )
         tear_down_assistant.remove_images_created_for_tests()
-
-
-class TestSerializersImageFields(TestCase):
-    def setUp(self):
-        self.whatever_project = create_object(
-            Project,
-            data={'name': 'Whatever'}
-        )
-
-    def test_image_field_is_an_url(self):
-        screenshot = create_object(
-            Screenshot,
-            data={'project': self.whatever_project}
-        )
-        screenshot_serializer = self.get_serializer_when_request_is_passed(
-            screenshot
-        )
-        image_field = screenshot_serializer.data['image']
-
-        self.assertTrue('http://testserver' in image_field)
-
-    def get_serializer_when_request_is_passed(self, screenshot):
-        request_factory = RequestFactory()
-        request = request_factory.get('/')
-        return ScreenshotSerializer(
-            screenshot,
-            context={'request': request}
-        )
-
-    def tearDown(self):
-        tear_down_assistant = ImagesEraser(
-            directory_name='screenshots/Whatever'
-        )
-        tear_down_assistant.remove_whole_directory()

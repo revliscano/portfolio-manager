@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
 from apps.portfolio.models import Project, Technology, Screenshot
@@ -36,10 +37,13 @@ class ProjectPreviewSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'role', 'cover_image')
 
     def get_cover_image(self, project_being_serialized):
-        screenshot = Screenshot.objects.filter(
-            project=project_being_serialized,
-            is_cover=True
-        ).first()
-        if screenshot is None:
-            return None
-        return screenshot.image.url
+        try:
+            screenshot = Screenshot.objects.get(
+                project=project_being_serialized,
+                is_cover=True
+            )
+            return self.context['request'].build_absolute_uri(
+                screenshot.image.url
+            )
+        except ObjectDoesNotExist:
+            return ''
