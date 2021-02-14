@@ -7,8 +7,7 @@ from apps.portfolio.models import Project, Technology, Screenshot
 class ScreenshotSerializer(serializers.ModelSerializer):
     class Meta:
         model = Screenshot
-        # colocar '__all__ en vez de hardcodear los fields'
-        fields = ('id', 'project', 'image', 'is_cover', 'caption')
+        fields = '__all__'
 
 
 class TechnologySerializer(serializers.ModelSerializer):
