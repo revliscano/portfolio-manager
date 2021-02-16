@@ -19,11 +19,37 @@ class Project(models.Model):
     year = models.IntegerField()
     technologies = models.ManyToManyField(
         to=Technology,
+        through='TechnologyPerProject',
         related_name='projects'
     )
 
     def __str__(self):
         return self.name
+
+
+class TechnologyPerProject(models.Model):
+    project = models.ForeignKey(
+        to=Project,
+        on_delete=models.CASCADE,
+        related_name='technologies_per_project'
+    )
+    technology = models.ForeignKey(
+        to=Technology,
+        on_delete=models.CASCADE
+    )
+    how = models.TextField(max_length=4000)
+
+    class Meta:
+        verbose_name_plural = 'Technologies Per Project'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['project', 'technology'],
+                name='unique_project_and_technology_pair'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.technology} on {self.project}'
 
 
 class Screenshot(models.Model):

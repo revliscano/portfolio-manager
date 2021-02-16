@@ -1,10 +1,16 @@
 from django.test import TestCase, RequestFactory
 
-from apps.portfolio.models import Project, Technology, Screenshot
+from apps.portfolio.models import (
+    Project,
+    Technology,
+    TechnologyPerProject,
+    Screenshot
+)
 from apps.portfolio.serializers import (
     ProjectSerializer,
     ProjectPreviewSerializer,
     TechnologySerializer,
+    TechnologyPerProjectSerializer,
     ScreenshotSerializer
 )
 from apps.portfolio.tests.utils import (
@@ -61,7 +67,7 @@ class TestProjectPreviewSerializerFields(TestCase):
 
 class TestTechnologySerializerFields(TestCase):
     def setUp(self):
-        technology = create_object(Technology)
+        technology = create_object(Technology, commit=False)
         self.serializer = TechnologySerializer(technology)
 
     def test_contains_all_fields(self):
@@ -76,9 +82,26 @@ class TestTechnologySerializerFields(TestCase):
         tear_down_assistant.remove_images_created_for_tests()
 
 
+class TestTechnologyPerProjectSerializerFields(TestCase):
+    def setUp(self):
+        project_technology = create_object(TechnologyPerProject, commit=False)
+        self.serializer = TechnologyPerProjectSerializer(project_technology)
+
+    def test_contains_all_fields(self):
+        expected_fields = ['id', 'how', 'technology_name', 'technology_logo']
+        serializer_fields = self.serializer.data.keys()
+        self.assertCountEqual(serializer_fields, expected_fields)
+
+    def tearDown(self):
+        tear_down_assistant = ImagesEraser(
+            directory_name='technologies_logos'
+        )
+        tear_down_assistant.remove_images_created_for_tests()
+
+
 class TestScreenshotSerializerFields(TestCase):
     def setUp(self):
-        self.screenshot = create_object(Screenshot)
+        self.screenshot = create_object(Screenshot, commit=False)
         self.serializer = ScreenshotSerializer(self.screenshot)
 
     def test_contains_all_fields(self):
@@ -134,19 +157,28 @@ class TestProjectsTechnologiesSerializarion(TestCase):
         )
 
     def create_project_and_technologies(self):
-        self.technologies = create_three_objects_of(Technology)
-        self.project = create_object(
-            Project,
-            data={'technologies': self.technologies}
+        technologies = create_three_objects_of(Technology)
+        self.project = create_object(Project)
+        self.project.technologies.set(
+            technologies,
+            through_defaults={'how': ''}
         )
 
     def get_serializers_data(self):
         project_serializer = ProjectSerializer(self.project)
         technologies_data = [
-            TechnologySerializer(technology).data
-            for technology in self.technologies
+            self.get_data_of_technologyperproject_object(technology)
+            for technology in self.project.technologies.all()
         ]
         return project_serializer.data, technologies_data
+
+    def get_data_of_technologyperproject_object(self, technology):
+        object_ = TechnologyPerProject.objects.get(
+            project=self.project,
+            technology=technology
+        )
+        serializer = TechnologyPerProjectSerializer(object_)
+        return serializer.data
 
     def tearDown(self):
         tear_down_assistant = ImagesEraser(

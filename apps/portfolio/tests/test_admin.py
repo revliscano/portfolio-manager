@@ -2,8 +2,17 @@ from django.test import SimpleTestCase
 from django.contrib import admin as actual_admin
 from django.forms.models import inlineformset_factory
 
-from apps.portfolio.models import Project, Technology, Screenshot
-from apps.portfolio.admin import ProjectAdmin, ScreenshotInline
+from apps.portfolio.models import (
+    Project,
+    Technology,
+    TechnologyPerProject,
+    Screenshot
+)
+from apps.portfolio.admin import (
+    ProjectAdmin,
+    ScreenshotInline,
+    TechnologyInline
+)
 
 
 class TestModelAdminRegistration(SimpleTestCase):
@@ -13,11 +22,14 @@ class TestModelAdminRegistration(SimpleTestCase):
     def test_technology_admin_is_registered(self):
         self.assertTrue(actual_admin.site.is_registered(Technology))
 
+    def test_technologyperproject_admin_is_registered(self):
+        self.assertTrue(actual_admin.site.is_registered(TechnologyPerProject))
+
     def test_screenshot_admin_is_registered(self):
         self.assertTrue(actual_admin.site.is_registered(Screenshot))
 
 
-class TestScreenshotsInline(SimpleTestCase):
+class TestProjectAdminInlines(SimpleTestCase):
 
     class MockRequest:
         pass
@@ -36,21 +48,27 @@ class TestScreenshotsInline(SimpleTestCase):
             model=Screenshot,
             fields='__all__'
         )
-        project_admin_inline = self.get_project_admin_inline()
+        project_admin_inline = self.get_project_admin_inline(ScreenshotInline)
         returned_formset = project_admin_inline.get_formset(self.request)
 
         self.assertEqual(type(returned_formset), type(expected_formset))
 
-    def test_screenshots_inline_formset_has_no_extra_forms(self):
-        expected_extra_forms = 0
-        project_admin_inline = self.get_project_admin_inline()
-        self.assertEqual(project_admin_inline.extra, expected_extra_forms)
+    def test_technologies_inline_is_included_in_project_admin(self):
+        expected_formset = inlineformset_factory(
+            parent_model=Project,
+            model=TechnologyPerProject,
+            fields='__all__'
+        )
+        project_admin_inline = self.get_project_admin_inline(TechnologyInline)
+        returned_formset = project_admin_inline.get_formset(self.request)
 
-    def get_project_admin_inline(self):
+        self.assertEqual(type(returned_formset), type(expected_formset))
+
+    def get_project_admin_inline(self, inline):
         inline_class = next(
             inline_class
             for inline_class in ProjectAdmin.inlines
-            if inline_class == ScreenshotInline
+            if inline_class == inline
         )
         return inline_class(
             parent_model=Project,

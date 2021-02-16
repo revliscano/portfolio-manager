@@ -1,7 +1,12 @@
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 
-from apps.portfolio.models import Project, Technology, Screenshot
+from apps.portfolio.models import (
+    Project,
+    Technology,
+    TechnologyPerProject,
+    Screenshot
+)
 
 
 class ScreenshotSerializer(serializers.ModelSerializer):
@@ -16,9 +21,31 @@ class TechnologySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class TechnologyPerProjectSerializer(serializers.ModelSerializer):
+    technology_name = serializers.ReadOnlyField(source='technology.name')
+    technology_logo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TechnologyPerProject
+        fields = ('id', 'how', 'technology_name', 'technology_logo')
+
+    def get_technology_logo(self, technology_being_serialized):
+        relative_uri = technology_being_serialized.technology.logo.url
+        try:
+            absolute_uri = self.context['request'].build_absolute_uri(
+                relative_uri
+            )
+            return absolute_uri
+        except KeyError:
+            return relative_uri
+
+
 class ProjectSerializer(serializers.ModelSerializer):
     screenshots = ScreenshotSerializer(many=True)
-    technologies = TechnologySerializer(many=True)
+    technologies = TechnologyPerProjectSerializer(
+        many=True,
+        source='technologies_per_project'
+    )
 
     class Meta:
         model = Project
