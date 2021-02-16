@@ -1,4 +1,5 @@
 from os.path import dirname, exists
+from unittest import skip as skip_test
 
 from django.test import TestCase
 from django.db.utils import IntegrityError
@@ -128,8 +129,8 @@ class TestScreenshotModel(TestCase):
         tear_down_assistant.remove_whole_directory()
 
 
-class TestImagesFileDeletion(TestCase):
-    def test_technology_logo_image_gets_deleted(self):
+class TestTechnologyLogoFileDeletion(TestCase):
+    def test_logo_gets_deleted_on_technology_deletion(self):
         technology = create_object(Technology)
         image_path = ImagePath(technology.logo.url)
 
@@ -137,7 +138,9 @@ class TestImagesFileDeletion(TestCase):
 
         self.assertFalse(exists(image_path.absolute_path))
 
-    def test_screenshot_image_gets_deleted(self):
+
+class TestScreenshotsImagesFileDeletion(TestCase):
+    def test_image_gets_deleted_on_screenshot_deletion(self):
         screenshot = create_object(Screenshot)
         image_path = ImagePath(screenshot.image.url)
 
@@ -145,23 +148,26 @@ class TestImagesFileDeletion(TestCase):
 
         self.assertFalse(exists(image_path.absolute_path))
 
-    def test_all_screenshots_images_get_deleted_when_project_deletion(self):
+    def test_all_images_get_deleted_on_project_deletion(self):
         project = create_object(Project)
         screenshots = create_three_objects_of(
             Screenshot,
             common_data={'project': project}
         )
-        images_paths = self.generate_image_paths_of(screenshots)
 
         project.delete()
 
-        self.assertTrue(
-            all(
-                exists(image_path.absolute_path) is False
-                for image_path in images_paths
-            )
+        self.assertTrue(self.all_images_were_deleted(screenshots))
+
+    def all_images_were_deleted(self, screenshots):
+        images_paths = self.get_images_paths(screenshots)
+        return all(
+            exists(image_path.absolute_path) is False
+            for image_path in images_paths
         )
 
-    def generate_image_paths_of(self, screenshots):
-        for screenshot in screenshots:
-            yield ImagePath(screenshot.image.url)
+    def get_images_paths(self, screenshots):
+        return [
+            ImagePath(screenshot.image.url)
+            for screenshot in screenshots
+        ]
