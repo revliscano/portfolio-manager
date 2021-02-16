@@ -1,8 +1,7 @@
-from os.path import dirname, join, exists
+from os.path import dirname, exists
 
 from django.test import TestCase
 from django.db.utils import IntegrityError
-from django.conf import settings
 
 from apps.portfolio.models import (
     Project,
@@ -10,7 +9,12 @@ from apps.portfolio.models import (
     Screenshot,
     TechnologyPerProject
 )
-from apps.portfolio.tests.utils import create_object, ImagesEraser
+from apps.portfolio.tests.utils import (
+    create_object,
+    create_three_objects_of,
+    ImagesEraser,
+    ImagePath
+)
 
 
 class TestProjectModel(TestCase):
@@ -127,12 +131,37 @@ class TestScreenshotModel(TestCase):
 class TestImagesFileDeletion(TestCase):
     def test_technology_logo_image_gets_deleted(self):
         technology = create_object(Technology)
+        image_path = ImagePath(technology.logo.url)
 
-        image_path = self.get_image_path(technology.logo.url)
         technology.delete()
 
-        self.assertFalse(exists(image_path))
+        self.assertFalse(exists(image_path.absolute_path))
 
-    def get_image_path(self, relative_image_path):
-        project_directory = settings.BASE_DIR
-        return join(project_directory, relative_image_path.lstrip('/'))
+    def test_screenshot_image_gets_deleted(self):
+        screenshot = create_object(Screenshot)
+        image_path = ImagePath(screenshot.image.url)
+
+        screenshot.delete()
+
+        self.assertFalse(exists(image_path.absolute_path))
+
+    def test_all_screenshots_images_get_deleted_when_project_deletion(self):
+        project = create_object(Project)
+        screenshots = create_three_objects_of(
+            Screenshot,
+            common_data={'project': project}
+        )
+        images_paths = self.generate_image_paths_of(screenshots)
+
+        project.delete()
+
+        self.assertTrue(
+            all(
+                exists(image_path.absolute_path) is False
+                for image_path in images_paths
+            )
+        )
+
+    def generate_image_paths_of(self, screenshots):
+        for screenshot in screenshots:
+            yield ImagePath(screenshot.image.url)

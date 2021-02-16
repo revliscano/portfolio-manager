@@ -1,6 +1,7 @@
 import re
 import os
 from shutil import rmtree
+from urllib.parse import unquote
 
 from django.conf import settings
 from mixer.backend.django import Mixer
@@ -47,3 +48,19 @@ class ImagesEraser:
         regex_pattern_for_test_images = r"image(?:_\w+)?\.gif"
         if re.match(regex_pattern_for_test_images, image):
             os.remove(os.path.join(self.directory, image))
+
+
+class ImagePath:
+
+    project_directory = settings.BASE_DIR
+
+    def __init__(self, path):
+        self.relative_image_path = self._sanitize(path)
+
+    @property
+    def absolute_path(self):
+        return os.path.join(self.project_directory, self.relative_image_path)
+
+    def _sanitize(self, path):
+        relative_image_path = unquote(path)
+        return relative_image_path.lstrip('/')

@@ -75,3 +75,10 @@ class Screenshot(models.Model):
 
     def __str__(self):
         return f'{self.project} screenshot'
+
+    def delete(self, *args, **kwargs):
+        self.delete_actual_image_file()
+        super().delete(*args, **kwargs)
+
+    def delete_actual_image_file(self):
+        self.image.delete(save=True)
