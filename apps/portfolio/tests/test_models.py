@@ -1,7 +1,8 @@
-from os.path import dirname
+from os.path import dirname, join, exists
 
 from django.test import TestCase
 from django.db.utils import IntegrityError
+from django.conf import settings
 
 from apps.portfolio.models import (
     Project,
@@ -121,3 +122,17 @@ class TestScreenshotModel(TestCase):
             directory_name='screenshots/Whatever'
         )
         tear_down_assistant.remove_whole_directory()
+
+
+class TestImagesFileDeletion(TestCase):
+    def test_technology_logo_image_gets_deleted(self):
+        technology = create_object(Technology)
+
+        image_path = self.get_image_path(technology.logo.url)
+        technology.delete()
+
+        self.assertFalse(exists(image_path))
+
+    def get_image_path(self, relative_image_path):
+        project_directory = settings.BASE_DIR
+        return join(project_directory, relative_image_path.lstrip('/'))

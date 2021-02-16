@@ -11,6 +11,13 @@ class Technology(models.Model):
     def __str__(self):
         return self.name
 
+    def delete(self, *args, **kwargs):
+        self.delete_actual_logo_file()
+        super().delete(*args, **kwargs)
+
+    def delete_actual_logo_file(self):
+        self.logo.delete(save=True)
+
 
 class Project(models.Model):
     name = models.CharField(max_length=50)
