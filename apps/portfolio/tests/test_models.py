@@ -1,5 +1,4 @@
 from os.path import dirname, exists
-from unittest import skip as skip_test
 
 from django.test import TestCase
 from django.db.utils import IntegrityError
@@ -147,6 +146,15 @@ class TestScreenshotsImagesFileDeletion(TestCase):
         screenshot.delete()
 
         self.assertFalse(exists(image_path.absolute_path))
+
+    def test_screenshot_directory_gets_deleted_if_empty(self):
+        screenshot = create_object(Screenshot)
+        image_path = ImagePath(screenshot.image.url)
+        screenshot_directory = dirname(image_path.absolute_path)
+
+        screenshot.delete()
+
+        self.assertFalse(exists(screenshot_directory))
 
     def test_all_images_get_deleted_on_project_deletion(self):
         project = create_object(Project)

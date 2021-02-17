@@ -1,4 +1,7 @@
+import os
+
 from django.db import models
+from django.conf import settings
 
 
 class Technology(models.Model):
@@ -82,3 +85,14 @@ class Screenshot(models.Model):
 
     def delete_actual_image_file(self):
         self.image.delete(save=True)
+        self.delete_directory_if_empty()
+
+    def delete_directory_if_empty(self):
+        relative_directory_path = self.generate_upload_directory('')
+        absolute_directory_path = os.path.join(
+            settings.MEDIA_ROOT,
+            relative_directory_path
+        )
+
+        if not os.listdir(absolute_directory_path):
+            os.rmdir(absolute_directory_path)
